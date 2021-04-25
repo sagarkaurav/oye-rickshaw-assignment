@@ -1,10 +1,10 @@
-from flask import Flask, request
 import os
+
 import pymongo
 from bson.decimal128 import Decimal128
 from bson.objectid import ObjectId
-from .request_schema import loc_upadate_req
 from cerberus import Validator
+from flask import Flask, request
 
 app = Flask(__name__)
 
@@ -43,7 +43,11 @@ def rides_index(lng, lat):
 
 @app.route("/api/v1/drivers/location", methods=["POST"])
 def rides_update():
-    req_validator = Validator(loc_upadate_req)
+    req_validator = Validator({
+        "id": {"type": "string", "required": True},
+        "lng": {"type": "string", "required": True},
+        "lat": {"type": "string", "required": True},
+    })
     req_data = request.get_json()
     if req_validator.validate(req_data):
         driver_id = req_data["id"]
@@ -54,9 +58,7 @@ def rides_update():
                 "loc.coordinates": [lng, lat]}
             })
         except:
-            return {
-                "msg": "something went wrong please try again", 500
-            }
+            return {"msg": "something went wrong please try again"}, 500
         return {
             "msg": "location updated successfully"
         }
